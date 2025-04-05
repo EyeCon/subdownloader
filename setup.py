@@ -6,7 +6,9 @@ import argparse
 import gettext
 from pathlib import Path
 import sys
+import subprocess
 from setuptools import find_packages, setup
+from setuptools.command.install import install
 
 # from sphinx.setup_command import BuildDoc
 
@@ -14,6 +16,38 @@ gettext.NullTranslations().install()
 
 import subdownloader.project
 project_path = Path(__file__).absolute().parent
+
+
+class PostInstallCommand(install):
+    """Post-installation for installation mode."""
+    def run(self):
+        install.run(self)
+        self.apply_patches()
+
+    def apply_patches(self):
+        """Apply compatibility patches for Python 3.13."""
+        try:
+            # Get the site-packages directory
+            import site
+            site_packages = site.getsitepackages()[0]
+            
+            # Apply diskcache patch
+            diskcache_patch = project_path / 'patches' / 'diskcache-persistent.patch'
+            diskcache_file = Path(site_packages) / 'diskcache' / 'persistent.py'
+            if diskcache_patch.exists() and diskcache_file.exists():
+                subprocess.run(['patch', str(diskcache_file), str(diskcache_patch)], check=True)
+                print("Applied diskcache patch successfully")
+
+            # Apply imdbpie patch
+            imdbpie_patch = project_path / 'patches' / 'imdbpie-auth.patch'
+            imdbpie_file = Path(site_packages) / 'imdbpie' / 'auth.py'
+            if imdbpie_patch.exists() and imdbpie_file.exists():
+                subprocess.run(['patch', str(imdbpie_file), str(imdbpie_patch)], check=True)
+                print("Applied imdbpie patch successfully")
+
+        except Exception as e:
+            print(f"Warning: Failed to apply patches: {e}")
+            print("Please apply patches manually as described in README.patches.md")
 
 
 parser = argparse.ArgumentParser(add_help=False)
@@ -85,6 +119,7 @@ setup(
     },
     include_package_data=True,
     cmdclass={
+        'install': PostInstallCommand,
         # 'build_sphinx': BuildDoc,
     },
     command_options={
