@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 from setuptools import find_packages, setup
 
-from sphinx.setup_command import BuildDoc
+# from sphinx.setup_command import BuildDoc
 
 gettext.NullTranslations().install()
 
@@ -35,9 +35,9 @@ def get_requires(filepath):
     return result
 
 
-requirements = get_requires(project_path / 'requirements.txt')
+install_requires = get_requires(project_path / 'requirements.txt')
 if ns.with_gui:
-    requirements += get_requires(project_path / 'requirements_gui.txt')
+    install_requires += get_requires(project_path / 'requirements_gui.txt')
 
 setup(
     name=subdownloader.project.PROJECT_TITLE.lower(),
@@ -70,16 +70,14 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Natural Language :: English',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
-    python_requires='>=3.5, <4',
-    provides=[
-        'subdownloader'
-    ],
-    requires=requirements,
+    python_requires='>=3.7',
+    install_requires=install_requires,
     entry_points={
         'console_scripts': [
             'subdownloader = subdownloader.client.__main__:main'
@@ -87,7 +85,7 @@ setup(
     },
     include_package_data=True,
     cmdclass={
-        'build_sphinx': BuildDoc,
+        # 'build_sphinx': BuildDoc,
     },
     command_options={
         'build_sphinx': {
